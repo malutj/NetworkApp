@@ -14,5 +14,5 @@
 #include <signal.h>
 
 //function declarations
-void    printUsage  ();
-void    getInput    (char *input);
+void    print_usage  ();
+void    get_input    (char *input);
