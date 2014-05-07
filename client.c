@@ -1,8 +1,8 @@
 /* * * * * * * * * * * * * * * * * * * * * *
-*   Filename: client.c
-*   Owner: Jason M Malutich
-*   Date: 7 May 2014
-* * * * * * * * * * * * * * * * * * * * * */
+ *  Filename: client.c
+ *  Owner: Jason M Malutich
+ *  Date: 7 May 2014
+ * * * * * * * * * * * * * * * * * * * * * */
 
 #include "client.h"
 
@@ -11,14 +11,14 @@ int main(int argc, char **argv){
     
     //variables
     char *host;
-    char input[BUF_SIZE];
+    char input[OPT_COUNT][BUF_SIZE];
     int port;
-    int controlCon;
+    int control_con;
     
     
     
     //get command line arguments
-    if(argc != 3) printUsage();
+    if(argc != 3) print_usage();
     host = argv[1];
     port = atoi(argv[2]);
     
@@ -27,7 +27,7 @@ int main(int argc, char **argv){
     //enter loop
     do{
         
-    }while(getInput() != "exit");
+    }while(get_input() != "exit");
     
     
     
@@ -36,10 +36,37 @@ int main(int argc, char **argv){
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * 
- * Desc: Prints usage instructions for program
- * Return: void
+ *  Desc: Prints usage instructions for program
+ *  Return: void
  * * * * * * * * * * * * * * * * * * * * * * * */
- void printUsage(){
-     puts("Usage: client <hostname> <port number>\n");
-     exit(0);
- }
+void print_usage(){
+    puts("Usage: client <hostname> <port number>\n");
+    exit(0);
+}
+ 
+ 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+ *  Desc: Get the user's input commands
+ *  Param: char *input - pointer where we'll store the user's input
+ *  Return: void
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+void get_input(char **input){
+    //read from command line into input array
+    fgets(input[0], BUF_SIZE, STD_IN);
+     
+    //determine the command
+    //LIST
+    if(strncmp(input[0], "ls", 2) == 0){
+         
+    }
+    
+    //GET
+    else if(strncmp(input[0], "get", 3) == 0){
+        
+    }
+    
+    //NOT RECOGNIZED
+    else{
+        //print command list
+    }
+}
