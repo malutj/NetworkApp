@@ -13,6 +13,7 @@
 #include <errno.h>
 #include <signal.h>
 
+#define DEBUG 1
 #define BUF_SIZE 1000
 #define MSG_SIZE_BUF 4
 
