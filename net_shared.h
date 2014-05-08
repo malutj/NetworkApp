@@ -1,3 +1,3 @@
 #include <stdio.h>
 
-#define DEBUG(I) DEBUG_ON ? printf(":%d\n",I) : "";
+#define DEBUG(MSG) DEBUG_ON ? printf("%s",MSG) : "";
