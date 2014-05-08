@@ -148,7 +148,7 @@ void get_connection(int socket, char *host, char *port){
     hints.ai_socktype = SOCK_STREAM;
     
     //get address info
-    if((status = statgetaddrinfo(host, port, &hints, &result) != 0){
+    if((status = getaddrinfo(host, port, &hints, &result) != 0){
         print_error(gai_strerror(status));
     }
     
