@@ -1,5 +1,5 @@
 /* * * * * * * * * * * * * * * * * * * * * * 
- *  Filename: client.h
+ *  Filename: net_client.h
  *  Owner: Jason M Malutich
  *  Date: 7 May 2014           
  * * * * * * * * * * * * * * * * * * * * * */
@@ -13,6 +13,14 @@
 #include <errno.h>
 #include <signal.h>
 
+#define BUF_SIZE 1000
+#define MSG_DELIM '.'
+
+
 //function declarations
-void    print_usage  ();
-void    get_input    (char *input);
+void    print_usage     (void);
+void    print_error     (char *msg);
+void    get_input       (char *input);
+int     get_socket      (void);
+void    get_connection  (int socket, char *host, char *port);
+void    receive_msg     (int fd);
