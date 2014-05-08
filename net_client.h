@@ -14,7 +14,7 @@
 #include <signal.h>
 
 #define BUF_SIZE 1000
-#define MSG_DELIM '.'
+#define MSG_SIZE_BUF 4
 
 
 //function declarations
