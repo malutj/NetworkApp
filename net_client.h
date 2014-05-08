@@ -14,9 +14,6 @@
 #include <signal.h>
 
 #define DEBUG 1
-#define BUF_SIZE 1000
-#define MSG_SIZE_BUF 4
-
 
 //function declarations
 void    print_usage     (void);
