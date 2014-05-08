@@ -62,16 +62,6 @@ void print_usage(void){
     exit(EXIT_FAILURE);
 }
 
-/* * * * * * * * * * * * * * * * * * * * * * * * 
- *  Desc: Prints error messages
- *  Param: char *msg - the error message to print
- *  Return: void
- * * * * * * * * * * * * * * * * * * * * * * * */
-void print_error(char *msg){
-    fprintf(stderr, "ERROR: %s\n", msg);
-    exit(EXIT_FAILURE);
-}
- 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
  *  Desc: Get the user's input commands
  *  Param: int *cmd - pointer where we'll store the number value of the command (-1) on error
@@ -139,17 +129,6 @@ void get_input(int *cmd, char *arg){
     }
 }
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
- *  Desc: Create a new socket
- *  Return: int - the file descriptor for the new socket
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-int get_socket(void){
-    int fd;
-    if((fd = socket(PF_INET, SOCK_STREAM, 0) == -1){
-        print_error(strerror(errno));
-    }
-    return fd;
-}
  
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
  *  Desc: Create a new connection
