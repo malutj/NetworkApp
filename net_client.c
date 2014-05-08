@@ -11,7 +11,8 @@ int main(int argc, char **argv){
     
     //variables
     char *host, *port;
-    char input[OPT_COUNT][BUF_SIZE];
+    int command;
+    char opt[BUF_SIZE+1];
     int control_con;
     
     
@@ -21,17 +22,30 @@ int main(int argc, char **argv){
     port = argv[2];
     
     //create socket for control connection
+DEBUG(":CREATING SOCKET...");
     control_con = get_socket();
-    
+DEBUG("SOCKET CREATED\n");
+
     //connect to the server on the control connection
+DEBUG(":CONNECTING TO SERVER...");
     get_connection(control_con, host, port);
+DEBUG("CONNECTED TO SERVER\n");
     
     //enter loop
     do{
-        
+
         //get message from server
-        receive_msg(control_con);
-    }while(get_input() != "exit");
+DEBUG(":GETTING INPUT FROM USER...");
+        get_input(&command, opt);
+DEBUG("INPUT RECEIVED...");
+
+        if(command == -1) continue;
+        
+        //send command to the server
+DEBUG(":SENDING COMMAND TO THE SERVER...");
+
+DEBUG("COMMAND SENT\n");
+    }while(command != EXIT);
     
     
     
@@ -60,27 +74,68 @@ void print_error(char *msg){
  
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
  *  Desc: Get the user's input commands
- *  Param: char *input - pointer where we'll store the user's input
+ *  Param: int *cmd - pointer where we'll store the number value of the command (-1) on error
+ *  Param: char *arg - string to hold any command arguments
  *  Return: void
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void get_input(char **input){
+void get_input(int *cmd, char *arg){
+    char input[BUF_SIZE+1];
+    char cmd_string[BUF_SIZE];
+    int i, arg_start;
+    
     //read from command line into input array
-    fgets(input[0], BUF_SIZE, STD_IN);
+    fgets(input, BUF_SIZE, STD_IN);
      
-    //determine the command
+    //copy the command into the cmd_string variable
+    for(i=0; i < BUF_SIZE; i++){
+        if(input[i] == ' ' || input[i] == '\n') break;
+    }
+    memcpy(cmd_string, input, i-1);
+    cmd_string[i] = '\0';
+    arg_start = i+1;        //arg_start holds the beginning of the argument if there is one
+    
+    //determine what the command was
+    //EXIT
+    if(strcmp(cmd_string, "exit") == 0){
+        *cmd = 0;
+        *opt = NULL;
+        return;
+    }
+    
     //LIST
-    if(strncmp(input[0], "ls", 2) == 0){
-         
+    else if(strcmp(cmd_string, "list") == 0){
+         *cmd = 1;
+         *opt = NULL;
+         return;
     }
     
     //GET
-    else if(strncmp(input[0], "get", 3) == 0){
+    else if(strcmp(cmd_string, "get") == 0){
+        *cmd = 2;
         
+        //find the end of the argument string
+        for(i=arg_start; i < BUF_SIZE; i++){
+            if(input[i] == '\n' || input[i] == ' ') break;
+        }
+        
+        //make sure the argument string isn't blank
+        if(i-arg_start == 0){
+            printf("The 'get' command requires a <filename> argument\n");
+            *cmd = -1;
+            return;
+        }
+        
+        //copy the argument string into the arg variable
+        memcpy(*arg, input[arg_start], i);
     }
     
     //NOT RECOGNIZED
     else{
-        //print command list
+        
+        //print error message
+        printf("Command '%s' is not recognized. Type 'help' to get a list of commands\n", cmd_string);
+        *cmd = -1;
+        return;
     }
 }
 
