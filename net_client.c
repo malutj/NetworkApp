@@ -6,7 +6,6 @@
 
 #include "net_client.h"
 
-
 int main(int argc, char **argv){
     
     //variables
@@ -68,13 +67,13 @@ void print_usage(void){
  *  Param: char *arg - string to hold any command arguments
  *  Return: void
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void get_input(int *cmd, char *arg){
+void get_input(int *cmd, char arg[]){
     char input[BUF_SIZE+1];
     char cmd_string[BUF_SIZE];
     int i, arg_start;
     
     //read from command line into input array
-    fgets(input, BUF_SIZE, STD_IN);
+    fgets(input, BUF_SIZE, stdin);
      
     //copy the command into the cmd_string variable
     for(i=0; i < BUF_SIZE; i++){
@@ -88,14 +87,12 @@ void get_input(int *cmd, char *arg){
     //EXIT
     if(strcmp(cmd_string, "exit") == 0){
         *cmd = 0;
-        *opt = NULL;
         return;
     }
     
     //LIST
     else if(strcmp(cmd_string, "list") == 0){
          *cmd = 1;
-         *opt = NULL;
          return;
     }
     
@@ -116,7 +113,7 @@ void get_input(int *cmd, char *arg){
         }
         
         //copy the argument string into the arg variable
-        memcpy(*arg, input[arg_start], i);
+        memcpy(arg, input+(arg_start*sizeof(char)), i);
     }
     
     //NOT RECOGNIZED
@@ -140,7 +137,6 @@ void get_input(int *cmd, char *arg){
 void get_connection(int socket, char *host, char *port){
     struct addrinfo hints, *result, *p;
     int status;
-    int p;
     
     //set up the hints struct
     memset(&hints, 0, sizeof(struct addrinfo));
@@ -148,7 +144,7 @@ void get_connection(int socket, char *host, char *port){
     hints.ai_socktype = SOCK_STREAM;
     
     //get address info
-    if((status = getaddrinfo(host, port, &hints, &result) != 0){
+    if((status = getaddrinfo(host, port, &hints, &result)) != 0){
         print_error(gai_strerror(status));
     }
     
@@ -188,7 +184,7 @@ void receive_msg(int fd){
     //read first MSG_SIZE_BUF bytes of msg to get the size of the incoming message
     do{
         //error reading from socket
-        if((num_read = rec(fd, &msg_size[i], MSG_SIZE_BUF-i)) == -1) print_error(strerror(errno));
+        if((num_read = recv(fd, &msg_size[i], MSG_SIZE_BUF-i, 0)) == -1) print_error(strerror(errno));
         
         //socket was closed by server
         if(num_read == 0){
@@ -207,7 +203,7 @@ void receive_msg(int fd){
     i=0;
     do{
         //error reading from socket
-        if((num_read = rec(fd, &msg[i], SIZE_BUF - 1)) == -1) print_error(strerror(errno));
+        if((num_read = recv(fd, &msg[i], BUF_SIZE, 0)) == -1) print_error(strerror(errno));
         
         //socket was closed by server
         if(num_read == 0){
@@ -217,8 +213,9 @@ void receive_msg(int fd){
         }
         
         i += num_read;
-    }while(i < msg_size)
-    
+	} while (i < msg_bytes);
+	msg[i] = '\0';
+
     //print the message
     printf("%s", msg);
     return;

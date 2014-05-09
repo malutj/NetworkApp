@@ -7,18 +7,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/type.h>
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
 #include <errno.h>
 #include <signal.h>
+#include "net_shared.h"
 
-#define DEBUG 1
+#define DEBUG_ON 1
 
 //function declarations
 void    print_usage     (void);
 void    print_error     (char *msg);
-void    get_input       (char *input);
+void    get_input       (int *cmd, char *arg);
 int     get_socket      (void);
 void    get_connection  (int socket, char *host, char *port);
 void    receive_msg     (int fd);

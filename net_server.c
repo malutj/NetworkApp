@@ -14,6 +14,8 @@ typedef struct thread_data{
 
 int main(int argc, char **argv){
     //variables
+	char *port;
+	int passive_con;
     pthread_t threads[BACKLOG];
     int i;
     //need to set up signals
@@ -49,13 +51,13 @@ DEBUG("CONNECTION ACCEPTED\n");
         //create a new thread to handle this connection
 DEBUG(":CREATING A NEW THREAD...");
         //figure out the next open thread number
-        for(i = 0; i < BACKLOG, i++){
+for (i = 0; i < BACKLOG; i++){
             if(threads[i] == 0) break;
         }
         td->thread_number = i;
         
         //create the new thread
-        if(pthread_create(&thread[i], NULL, session_handler, td) == -1){
+        if(pthread_create(&threads[i], NULL, session_handler, td) == -1){
             close(passive_con);
             close(td->control_con);
             free(td);
@@ -83,7 +85,7 @@ void print_usage(void){
 * Return: void
 * * * * * * * * * * * * * * * * * * * * * * * */
 void bind_socket(int socket, char *port){
-    struct addrinfo hint, *result;
+    struct addrinfo hints, *result;
     int status;
     
     //set up the hints struct
@@ -118,9 +120,10 @@ void bind_socket(int socket, char *port){
 int accept_connection(int socket){
     struct sockaddr_storage storage;
     int new_socket;
-    int addrlen;
-    addrlen = sizeof(storage);
-    if((new_socket = accept(socket, &storage, &addrlen)) == -1){
+    socklen_t addrlen;
+
+    addrlen = sizeof storage;
+	if ((new_socket = accept(socket, (struct sockaddr *)&storage, &addrlen)) == -1){
         close(socket);
         print_error(strerror(errno));
     }
@@ -135,4 +138,6 @@ int accept_connection(int socket){
 * * * * * * * * * * * * * * * * * * * * * * * */
 void *session_handler(void *ptr){
     thread_data *td = (thread_data *)ptr;
+
+	return NULL;
 }

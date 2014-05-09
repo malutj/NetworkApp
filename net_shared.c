@@ -26,7 +26,7 @@ void print_error(char *msg){
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 int get_socket(void){
     int fd;
-    if((fd = socket(PF_INET, SOCK_STREAM, 0) == -1){
+    if((fd = socket(PF_INET, SOCK_STREAM, 0)) == -1){
         print_error(strerror(errno));
     }
     return fd;

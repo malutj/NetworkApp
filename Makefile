@@ -1,9 +1,9 @@
-CFLAGS = -Wall -Wno-unused-variable -fpic -Wno-unused-but-set-variable -coverage -lm
+CFLAGS = -Wall -Wno-unused-variable -fpic -Wno-unused-but-set-variable -lm
 PROGS = net_client net_server
 
 default: all
 
-all: client server
+all: net_client net_server
 
 net_client: net_client.o net_shared.o
 	@gcc -o net_client net_client.o net_shared.o $(CFLAGS)
@@ -13,7 +13,7 @@ net_client.o: net_client.h net_shared.h
 	@gcc -c net_client.c $(CFLAGS)
 
 net_server: net_server.o net_shared.o
-	@gcc -o net_server net_server.o net_shared.o $(CFLAGS)
+	@gcc -o net_server net_server.o net_shared.o $(CFLAGS) -lpthread
 
 net_server.o: net_server.h net_shared.o
 	@echo "Compiling Server..."

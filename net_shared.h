@@ -7,19 +7,20 @@
  * * * * * * * * * * * * * * * * * * * * * */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+#include <sys/socket.h>
 
-#define DEBUG(MSG) DEBUG_ON ? printf("%s",MSG) : "";
+#define DEBUG(MSG) if(DEBUG_ON) printf("%s",MSG)
 
-//define statements
-//commands
 #define EXIT 0
 #define LIST 1
 #define GET 2
 #define CD 3
-
-//buffer sizes
 #define BUF_SIZE 1000
 #define MSG_SIZE_BUF 4
+#define BACKLOG 10
 
 //shared function declarations
 void    print_error     (char *msg);
