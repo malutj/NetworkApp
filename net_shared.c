@@ -15,7 +15,7 @@
  *  Return: void
  * * * * * * * * * * * * * * * * * * * * * * * */
 void print_error(char *msg){
-    fprintf(stderr, "ERROR: %s\n", msg);
+    printf("ERROR: %s\n", msg);
     exit(EXIT_FAILURE);
 }
 
@@ -31,3 +31,37 @@ int get_socket(void){
     }
     return fd;
 }
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*  Desc: Listen on the specified socket
+*  Param: int fd - the socket on which to listen
+*  Return: int - the file descriptor for the new socket
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+void start_listening(int fd){
+	if (listen(fd, BACKLOG) == -1){
+		close(fd);
+		print_error(strerror(errno));
+	}
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*  Desc: Sends a message over a socket
+*  Param: int fd - the socket on which to send the message
+*  Param: char *msg - the socket on which to send the message
+*  Return: int - the file descriptor for the new socket
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+void send_msg(int fd, char *msg){
+	//int len, total, num_written;
+	//len = strlen(msg);
+	//total = 0;
+
+	//while (total < len){
+	if (write(fd, msg, strlen(msg)) == -1){
+		close(fd);
+		print_error(strerror(errno));
+	}
+	//}
+
+}
+
+

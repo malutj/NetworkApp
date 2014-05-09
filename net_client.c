@@ -6,15 +6,18 @@
 
 #include "net_client.h"
 
+static int control_con;
+
 int main(int argc, char **argv){
     
     //variables
     char *host, *port;
     int command;
     char opt[BUF_SIZE+1];
-    int control_con;
     
-    
+	//handle SIGINT signal
+	signal(SIGINT, sig_handler);
+
     //get command line arguments
     if(argc != 3) print_usage();
     host = argv[1];
@@ -154,6 +157,7 @@ void get_connection(int socket, char *host, char *port){
         //if connection is successful
         if((status = connect(socket, p->ai_addr, p->ai_addrlen)) != -1){
             
+			printf("Connection to server successful\n");
             //free the linked list
             freeaddrinfo(result);
             
@@ -175,35 +179,15 @@ void get_connection(int socket, char *host, char *port){
  *  Return: int - the socket to read from
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void receive_msg(int fd){
-    char msg[BUF_SIZE+1], msg_size[MSG_SIZE_BUF + 1];
+    char msg[BUF_SIZE+1];
     int num_read;
-    int msg_bytes, i;
-    
-    i = 0;
-    
-    //read first MSG_SIZE_BUF bytes of msg to get the size of the incoming message
-    do{
-        //error reading from socket
-        if((num_read = recv(fd, &msg_size[i], MSG_SIZE_BUF-i, 0)) == -1) print_error(strerror(errno));
+    int i;
         
-        //socket was closed by server
-        if(num_read == 0){
-            close(fd);
-            puts("Server has closed the connection...exiting program");
-            exit(0);
-        }
-        i += num_read;
-    }while(i < 4);
-    
-    //set the msg_length
-    msg_size[MSG_SIZE_BUF] = '\0';
-    msg_bytes = atoi(msg_size);
-    
     //read the message
     i=0;
     do{
         //error reading from socket
-        if((num_read = recv(fd, &msg[i], BUF_SIZE, 0)) == -1) print_error(strerror(errno));
+        if((num_read = recv(fd, &msg[i], 1, 0)) == -1) print_error(strerror(errno));
         
         //socket was closed by server
         if(num_read == 0){
@@ -211,12 +195,20 @@ void receive_msg(int fd){
             puts("Server has closed the connection...exiting program");
             exit(0);
         }
-        
+		if (msg[i] == MSG_END) break;
         i += num_read;
-	} while (i < msg_bytes);
+	} while (i < BUF_SIZE);
 	msg[i] = '\0';
-
     //print the message
     printf("%s", msg);
-    return;
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * *
+* Desc: Function to handle SIG_INT
+* Return: void
+* * * * * * * * * * * * * * * * * * * * * * * */
+void sig_handler(int sig){
+	printf("Received SIG_INT Signal...Exiting program\n");
+	close(control_con);
+	exit(0);
 }

@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <errno.h>
 #include <sys/socket.h>
 
@@ -19,9 +21,12 @@
 #define GET 2
 #define CD 3
 #define BUF_SIZE 1000
-#define MSG_SIZE_BUF 4
 #define BACKLOG 10
+#define MSG_END '~'
 
 //shared function declarations
 void    print_error     (char *msg);
 int     get_socket      (void);
+void	start_listening	(int fd);
+void	send_msg		(int fd, char *msg);
+

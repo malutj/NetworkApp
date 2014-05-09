@@ -13,12 +13,14 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <pthread.h>
+#include <signal.h>
 #include "net_shared.h"
 
-#define DEBUG_ON 1
+#define DEBUG_ON 0
 
 //function declarations
 void    print_usage			(void);
 void    bind_socket			(int socket, char *port);
 int		accept_connection	(int socket);
 void    *session_handler	(void *);
+void	sig_handler(int sig);

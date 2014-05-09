@@ -11,15 +11,18 @@ typedef struct thread_data{
     int control_con;
 } thread_data;
 
+static int passive_con;
+static pthread_t threads[BACKLOG];
 
 int main(int argc, char **argv){
     //variables
 	char *port;
-	int passive_con;
-    pthread_t threads[BACKLOG];
-    int i;
-    //need to set up signals
     
+    int i;
+
+    //handle SIGINT signal
+	signal(SIGINT, sig_handler);
+
     //get command line arguments
     if(argc != 2) print_usage();
     port = argv[1];
@@ -36,8 +39,9 @@ DEBUG("BOUND\n");
 
     //listen for connections
 DEBUG(":STARTING TO LISTEN FOR CONNECTIONS...");
-    bind_socket(passive_con, port);
+    start_listening(passive_con);
 DEBUG("LISTENING\n");
+printf("Server listening on port %s...\n", port);
 
     //loop
     while(1){
@@ -97,6 +101,7 @@ void bind_socket(int socket, char *port){
     //get address info
     if((status = getaddrinfo(NULL, port, &hints, &result)) != 0){
         close(socket);
+		printf("getinfo...");
         print_error(gai_strerror(status));
     }
     
@@ -104,6 +109,7 @@ void bind_socket(int socket, char *port){
     if((bind(socket, result->ai_addr, result->ai_addrlen)) == -1){
         close(socket);
         freeaddrinfo(result);
+		printf("bind...");
         print_error(strerror(errno));
     }
     
@@ -137,7 +143,25 @@ int accept_connection(int socket){
 * Return: void
 * * * * * * * * * * * * * * * * * * * * * * * */
 void *session_handler(void *ptr){
-    thread_data *td = (thread_data *)ptr;
+	thread_data td;
+	int control_con;
+	
+	td = *(thread_data *)ptr;
+	control_con = td.control_con;
+	send_msg(control_con, "test~");
 
-	return NULL;
+	//set thread number to zero and kill thread
+	threads[td.thread_number] = 0;
+
+	pthread_exit(NULL);
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * *
+* Desc: Function to handle SIG_INT
+* Return: void
+* * * * * * * * * * * * * * * * * * * * * * * */
+void sig_handler(int sig){
+	printf("Received SIG_INT Signal...Exiting program\n");
+	close(passive_con);
+	exit(0);
 }
