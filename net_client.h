@@ -1,7 +1,7 @@
-/* * * * * * * * * * * * * * * * * * * * * * 
+/* * * * * * * * * * * * * * * * * * * * * *
  *  Filename: net_client.h
  *  Owner: Jason M Malutich
- *  Date: 7 May 2014           
+ *  Date: 7 May 2014
  * * * * * * * * * * * * * * * * * * * * * */
 
 #include <stdio.h>
@@ -19,10 +19,6 @@
 #define DEBUG_ON 0
 
 //function declarations
-void    print_usage     (void);
-void    print_error     (char *msg);
-void    get_input       (int *cmd, char arg[]);
-int     get_socket      (void);
-void    get_connection  (int socket, char *host, char *port);
-void    receive_msg     (int fd);
-void	sig_handler		(int sig);
+void print_usage(void);
+int get_user_input(char input[]);
+void sig_handler(int sig);

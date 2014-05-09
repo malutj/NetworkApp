@@ -13,7 +13,7 @@ int main(int argc, char **argv){
     //variables
     char *host, *port;
     int command;
-    char opt[BUF_SIZE+1];
+    char input[BUF_SIZE+1];
     
 	//handle SIGINT signal
 	signal(SIGINT, sig_handler);
@@ -26,27 +26,22 @@ int main(int argc, char **argv){
     //create socket for control connection
 DEBUG(":CREATING SOCKET...");
     control_con = get_socket();
-DEBUG("SOCKET CREATED\n");
 
     //connect to the server on the control connection
 DEBUG(":CONNECTING TO SERVER...");
-    get_connection(control_con, host, port);
-DEBUG("CONNECTED TO SERVER\n");
+    make_connection(control_con, host, port);
     
     //enter loop
     do{
 
-        //get message from server
+        //get input from the user
 DEBUG(":GETTING INPUT FROM USER...");
-        get_input(&command, opt);
-DEBUG("INPUT RECEIVED...");
-
-        if(command == -1) continue;
+        if((command = get_user_input(input)) == INPUT_ERROR) continue;
         
         //send command to the server
 DEBUG(":SENDING COMMAND TO THE SERVER...");
+	
 
-DEBUG("COMMAND SENT\n");
     }while(command != EXIT);
     
     
@@ -65,143 +60,23 @@ void print_usage(void){
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
- *  Desc: Get the user's input commands
- *  Param: int *cmd - pointer where we'll store the number value of the command (-1) on error
- *  Param: char *arg - string to hold any command arguments
- *  Return: void
+ *  Desc: Get the user's input
+ *  Param: char input[] - string to hold the user's input
+ *  Return: int - the command that was given
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void get_input(int *cmd, char arg[]){
-    char input[BUF_SIZE+1];
-    char cmd_string[BUF_SIZE];
-    int i, arg_start;
+int get_user_input(char input[]){
+	char opts[MAX_OPT][BUF_SIZE];
+    int i, cmd;
     
     //read from command line into input array
     fgets(input, BUF_SIZE, stdin);
-     
-    //copy the command into the cmd_string variable
-    for(i=0; i < BUF_SIZE; i++){
-        if(input[i] == ' ' || input[i] == '\n') break;
-    }
-    memcpy(cmd_string, input, i-1);
-    cmd_string[i] = '\0';
-    arg_start = i+1;        //arg_start holds the beginning of the argument if there is one
-    
-    //determine what the command was
-    //EXIT
-    if(strcmp(cmd_string, "exit") == 0){
-        *cmd = 0;
-        return;
-    }
-    
-    //LIST
-    else if(strcmp(cmd_string, "list") == 0){
-         *cmd = 1;
-         return;
-    }
-    
-    //GET
-    else if(strcmp(cmd_string, "get") == 0){
-        *cmd = 2;
-        
-        //find the end of the argument string
-        for(i=arg_start; i < BUF_SIZE; i++){
-            if(input[i] == '\n' || input[i] == ' ') break;
-        }
-        
-        //make sure the argument string isn't blank
-        if(i-arg_start == 0){
-            printf("The 'get' command requires a <filename> argument\n");
-            *cmd = -1;
-            return;
-        }
-        
-        //copy the argument string into the arg variable
-        memcpy(arg, input+(arg_start*sizeof(char)), i);
-    }
-    
-    //NOT RECOGNIZED
-    else{
-        
-        //print error message
-        printf("Command '%s' is not recognized. Type 'help' to get a list of commands\n", cmd_string);
-        *cmd = -1;
-        return;
-    }
+
+	//validate the user's input
+	cmd = parse_msg(input, opts);
+
+	return cmd;
 }
 
- 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
- *  Desc: Create a new connection
- *  Param: int socket - the socket file descriptor we'll be using
- *  Param: char *host - the host name or IP number of for the connection
- *  Param: char *port - the port number for the connection
- *  Return: void
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void get_connection(int socket, char *host, char *port){
-    struct addrinfo hints, *result, *p;
-    int status;
-    
-    //set up the hints struct
-    memset(&hints, 0, sizeof(struct addrinfo));
-    hints.ai_family = AF_INET;
-    hints.ai_socktype = SOCK_STREAM;
-    
-    //get address info
-    if((status = getaddrinfo(host, port, &hints, &result)) != 0){
-        print_error(gai_strerror(status));
-    }
-    
-    //connect to the server
-    for(p=result; p != NULL; p = p->ai_next){
-        
-        //if connection is successful
-        if((status = connect(socket, p->ai_addr, p->ai_addrlen)) != -1){
-            
-			printf("Connection to server successful\n");
-            //free the linked list
-            freeaddrinfo(result);
-            
-            //read initial prompt from server
-            receive_msg(socket);
-            
-            return;
-        }
-    }
-    
-    //unable to connect; free linked list and close socket before exit
-    freeaddrinfo(result);
-    close(socket);
-    print_error("Unable to create connection to the server");
-}
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
- *  Desc: Reads message from the control connection
- *  Return: int - the socket to read from
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void receive_msg(int fd){
-    char msg[BUF_SIZE+1];
-    int num_read;
-    int i;
-        
-    //read the message
-    i=0;
-    do{
-        //error reading from socket
-        if((num_read = recv(fd, &msg[i], 1, 0)) == -1) print_error(strerror(errno));
-        
-        //socket was closed by server
-        if(num_read == 0){
-            close(fd);
-            puts("Server has closed the connection...exiting program");
-            exit(0);
-        }
-		if (msg[i] == MSG_END) break;
-        i += num_read;
-	} while (i < BUF_SIZE);
-	msg[i] = '\0';
-    //print the message
-    printf("%s", msg);
-}
 
 /* * * * * * * * * * * * * * * * * * * * * * * *
 * Desc: Function to handle SIG_INT
