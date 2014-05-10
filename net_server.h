@@ -22,3 +22,4 @@
 void print_usage(void);
 void *session_handler(void *);
 void sig_handler(int sig);
+void handle_request(int cmd, char opts[][BUF_SIZE]);

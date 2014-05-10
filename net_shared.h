@@ -39,5 +39,5 @@ void start_listening(int fd);
 int accept_connection(int socket);
 void make_connection(int socket, char *host, char *port);
 void send_msg(int fd, char *msg);
-void get_msg(int fd);
+void get_msg(int fd, char *msg);
 int parse_msg(char msg[], char opts[][BUF_SIZE]);

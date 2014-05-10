@@ -20,5 +20,5 @@
 
 //function declarations
 void print_usage(void);
-int get_user_input(char input[]);
+void get_user_input(char input[]);
 void sig_handler(int sig);

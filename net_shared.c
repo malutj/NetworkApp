@@ -85,11 +85,11 @@ void start_listening(int fd){
 * Return: a file descriptor for the new connection
 * * * * * * * * * * * * * * * * * * * * * * * */
 int accept_connection(int socket){
-	struct sockaddr_storage storage;
+	struct sockaddr_in storage;
 	int new_socket;
 	socklen_t addrlen;
 
-	addrlen = sizeof storage;
+	addrlen = sizeof(storage);
 	if ((new_socket = accept(socket, (struct sockaddr *)&storage, &addrlen)) == -1){
 		close(socket);
 		print_error(strerror(errno));
@@ -127,12 +127,8 @@ void make_connection(int socket, char *host, char *port){
 		//if connection is successful
 		if ((status = connect(socket, p->ai_addr, p->ai_addrlen)) != -1){
 
-			printf("Connection to server successful\n");
 			//free the linked list
 			freeaddrinfo(result);
-
-			//read initial prompt from server
-			get_msg(socket);
 
 			return;
 		}
@@ -167,10 +163,10 @@ void send_msg(int fd, char *msg){
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *  Desc: Reads message from the control connection
+*  Param: char *msg - the string we'll store the message in
 *  Return: int - the socket to read from
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void get_msg(int fd){
-	char msg[BUF_SIZE + 1];
+void get_msg(int fd, char *msg){
 	int num_read;
 	int i;
 
@@ -180,19 +176,16 @@ void get_msg(int fd){
 		//error reading from socket
 		if ((num_read = recv(fd, &msg[i], 1, 0)) == -1) print_error(strerror(errno));
 
-		//socket was closed by server
+		//socket was closed
 		if (num_read == 0){
+			printf("Control connection was closed unexpectedly. Exiting program\n");
 			close(fd);
-			puts("Server has closed the connection...exiting program");
-			exit(0);
+			exit(EXIT_FAILURE);
 		}
 		if (msg[i] == MSG_END) break;
 		i += num_read;
 	} while (i < BUF_SIZE);
 	msg[i] = '\0';
-
-	//print the message
-	printf("%s", msg);
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -208,7 +201,7 @@ int parse_msg(char msg[], char opts[][BUF_SIZE]){
 
 	//copy the command into the cmd_string variable
 	for (i = 0; i < BUF_SIZE; i++){
-		if (msg[i] == ' ' || msg[i] == '\n') break;
+		if (msg[i] == ' ' || msg[i] == '\n' || msg[i] == MSG_END) break;
 	}
 	memcpy(cmd_string, msg, i);
 	cmd_string[i] = '\0';

@@ -12,8 +12,11 @@ int main(int argc, char **argv){
     
     //variables
     char *host, *port;
-    int command;
+    int cmd;
+	int msg_size;
     char input[BUF_SIZE+1];
+	char msg[BUF_SIZE + 1];
+	char opts[MAX_OPT][BUF_SIZE];
     
 	//handle SIGINT signal
 	signal(SIGINT, sig_handler);
@@ -24,27 +27,33 @@ int main(int argc, char **argv){
     port = argv[2];
     
     //create socket for control connection
-DEBUG(":CREATING SOCKET...");
     control_con = get_socket();
 
     //connect to the server on the control connection
-DEBUG(":CONNECTING TO SERVER...");
     make_connection(control_con, host, port);
     
+	//read initial prompt from server
+	get_msg(control_con, msg);
+	printf("%s", msg);
+
     //enter loop
     do{
 
         //get input from the user
-DEBUG(":GETTING INPUT FROM USER...");
-        if((command = get_user_input(input)) == INPUT_ERROR) continue;
-        
+		get_user_input(input);
+		if ((cmd = parse_msg(input, opts)) == INPUT_ERROR) continue;
+		
         //send command to the server
-DEBUG(":SENDING COMMAND TO THE SERVER...");
-	
+		send_msg(control_con, input);
+		
+		//handle response
+		
 
-    }while(command != EXIT);
-    
-    
+    }while(cmd != EXIT);
+
+	//close the connection
+	printf("Closing connection with server...\nExiting program...\n");
+	close(control_con);
     
     return 0;
 }
@@ -62,19 +71,18 @@ void print_usage(void){
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
  *  Desc: Get the user's input
  *  Param: char input[] - string to hold the user's input
- *  Return: int - the command that was given
+ *  Return: void
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-int get_user_input(char input[]){
-	char opts[MAX_OPT][BUF_SIZE];
+void get_user_input(char input[]){
+	char opts[MAX_OPT][BUF_SIZE+1];
     int i, cmd;
     
     //read from command line into input array
     fgets(input, BUF_SIZE, stdin);
-
-	//validate the user's input
-	cmd = parse_msg(input, opts);
-
-	return cmd;
+	for (i = 0; i < BUF_SIZE; i++){
+		if (input[i] == '\n') break;
+	}
+	input[i] = MSG_END;
 }
 
 
@@ -83,7 +91,7 @@ int get_user_input(char input[]){
 * Return: void
 * * * * * * * * * * * * * * * * * * * * * * * */
 void sig_handler(int sig){
-	printf("Received SIG_INT Signal...Exiting program\n");
+	printf("\nReceived SIG_INT Signal...Exiting program\n");
 	close(control_con);
 	exit(0);
 }

@@ -17,8 +17,10 @@ static pthread_t threads[BACKLOG];
 int main(int argc, char **argv){
     //variables
 	char *port;
-    
     int i;
+	struct addrinfo socket_in;
+	int len;
+	len = sizeof(socket_in);
 
     //handle SIGINT signal
 	signal(SIGINT, sig_handler);
@@ -35,15 +37,15 @@ int main(int argc, char **argv){
 
     //listen for connections
     start_listening(passive_con);
-
-printf("Server listening on port %s...\n", port);
+	printf("Server listening on port %s...\n", port);
 
     //loop
     while(1){
-        
+		
         //accept incoming connection
         thread_data *td = malloc(sizeof(thread_data));
         td->control_con = accept_connection(passive_con);
+		printf("Server accepted client connection...\n");
 
         //create a new thread to handle this connection
         //figure out the next open thread number
@@ -80,7 +82,7 @@ void print_usage(void){
 * Return: void
 * * * * * * * * * * * * * * * * * * * * * * * */
 void sig_handler(int sig){
-	printf("Received SIG_INT Signal...Exiting program\n");
+	printf("\nReceived SIG_INT Signal...Exiting program\n");
 	close(passive_con);
 	exit(0);
 }
@@ -93,21 +95,47 @@ void sig_handler(int sig){
 void *session_handler(void *ptr){
 	thread_data td;
 	int control_con;
-	char prompt[BUF_SIZE];
+	char *prompt;
+	int cmd;
+	char msg[BUF_SIZE];
+	char opts[MAX_OPT][BUF_SIZE];
 	
 	td = *(thread_data *)ptr;
 	control_con = td.control_con;
-	sprintf(prompt, "Welcome to Jason's Networking App\n\
-					\tThread number %ld\n~", (long)pthread_self());
+	prompt = "Welcome to Jason' Networking App\n"
+		"Command Options:\n"
+		"\tlist - list contents in current directory\n"
+		"\tget <filename or path> - return a specified file\n"
+		"\tcd - change the current directory\n"
+		"\thelp - print command list\n~";
+
 	send_msg(control_con, prompt);
+	while(1){
+		//receive the request
+		get_msg(control_con, msg);
+		if ((cmd = parse_msg(msg, opts)) == EXIT) break;
 
+		//handle the request
+		handle_request(cmd, opts);
 
-
-
+		//send the response
+	}
 
 	//set thread number to zero and kill thread
+	printf("Client closed the connection...terminating session.\n");
+	close(control_con);
 	threads[td.thread_number] = 0;
-
 	pthread_exit(NULL);
+}
+
+void handle_request(int cmd, char opts[][BUF_SIZE]){
+	switch (cmd){
+	case LIST:
+		break;
+	case GET:
+		break;
+	case CD:
+		break;
+	}
 }
 
