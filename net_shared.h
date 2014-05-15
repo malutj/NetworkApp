@@ -38,6 +38,6 @@ void bind_socket(int socket, char *port);
 void start_listening(int fd);
 int accept_connection(int socket);
 void make_connection(int socket, char *host, char *port);
-void send_msg(int fd, char *msg);
+void send_msg(int fd, char *msg, int msg_size);
 void get_msg(int fd, char *msg);
 int parse_msg(char msg[], char opts[][BUF_SIZE]);
