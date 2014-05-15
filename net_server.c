@@ -83,8 +83,15 @@ void print_usage(void){
 * Return: void
 * * * * * * * * * * * * * * * * * * * * * * * */
 void sig_handler(int sig){
+	int i;
 	printf("\nReceived SIG_INT Signal...Exiting program\n");
 	close(passive_con);
+	close(data_con);
+	for(i=0; i<BACKLOG; i++){
+		if(threads[i]){
+			close(threads[i]);
+		}
+	}
 	exit(0);
 }
 
@@ -225,7 +232,7 @@ void handleListRequest(int control_con){
 * * * * * * * * * * * * * * * * * * * * * * * */
 int connect_data(char *host, char *port){
 	int fd;
-	
+
 	fd = get_socket();					//get a new socket
 	make_connection(fd, host, port);	//make the connection
 	return fd;	//return the socket
