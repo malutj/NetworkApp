@@ -23,4 +23,7 @@
 void print_usage(void);
 void *session_handler(void *);
 void sig_handler(int sig);
-void handle_request(int cmd, char opts[][BUF_SIZE]);
+void handle_request(int control_con, int cmd, char msg[]);
+void handleListRequest(int control_con);
+int connect_data(char *host, char *port);
+
