@@ -14,6 +14,7 @@
 #include <netdb.h>
 #include <pthread.h>
 #include <signal.h>
+#include <dirent.h>
 #include "net_shared.h"
 
 #define DEBUG_ON 0
