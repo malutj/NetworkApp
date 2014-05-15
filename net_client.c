@@ -42,11 +42,11 @@ int main(int argc, char **argv){
 		//print a little prompt
 		printf("enter command>> ");
 			
-	        //get input from the user
+	    //get input from the user
 		get_user_input(input, &msg_size);
 		if ((cmd = parse_msg(input, opts)) == INPUT_ERROR) continue;
 			
-	        //send command to the server
+	    //send command to the server
 		send_msg(control_con, input);
 			
 		//if command is to exit, break
@@ -210,7 +210,7 @@ void get_user_input(char input[], int *msg_size){
  	}
  	
  	//open the file
- 	if((outfile = open(filename, O_WRONLY || O_CREAT || O_EXCL)) == -1){
+ 	if((outfile = open(filename, O_WRONLY | O_CREAT | O_EXCL)) == -1){
  		//file already exists
  		if(errno == EEXIST){
  			//ask user if they want to overwrite file
