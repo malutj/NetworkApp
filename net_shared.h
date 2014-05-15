@@ -27,7 +27,7 @@
 #define BUF_SIZE 1000
 #define MAX_OPT 10
 #define BACKLOG 10
-#define MSG_END '~'
+#define DATA_PORT 98125
 
 
 
