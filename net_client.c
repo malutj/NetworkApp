@@ -41,26 +41,26 @@ int main(int argc, char **argv){
     do{
 		//print a little prompt
 		printf("enter command>> ");
-		
-        //get input from the user
+			
+	        //get input from the user
 		get_user_input(input, &msg_size);
 		if ((cmd = parse_msg(input, opts)) == INPUT_ERROR) continue;
-		
-        //send command to the server
+			
+	        //send command to the server
 		send_msg(control_con, input);
-		
+			
 		//if command is to exit, break
 		if(cmd == EXIT) break;
-		
+			
 		//get success/error msg from server
 		get_msg(control_con, msg);
-		
+			
 		//print error message from server
 		if(msg != "ok"){
 			printf("%s\n", msg);
 			continue;
 		}
-		
+			
 		//handle the response
 		handle_response(cmd);
 
