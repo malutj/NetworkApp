@@ -49,6 +49,9 @@ int main(int argc, char **argv){
         //send command to the server
 		send_msg(control_con, input);
 		
+		//if command is to exit, break
+		if(cmd == EXIT) break;
+		
 		//get success/error msg from server
 		get_msg(control_con, msg);
 		
@@ -58,18 +61,8 @@ int main(int argc, char **argv){
 			continue;
 		}
 		
-		//open the data connection
-		data_con = get_socket();			//open the socket
-		bind_socket(data_con, DATA_PORT);	//bind the socket
-		start_listening(data_con);			//listen on the socket
-		accept_connection(data_con);		//accept connection from server
-		
-		handle_response(data_con, cmd);
-		
-		
-		
-		
-		
+		//handle the response
+		handle_response(cmd);
 
     }while(cmd != EXIT);
 
@@ -114,14 +107,20 @@ void get_user_input(char input[], int *msg_size){
  *  Param: int cmd - the command that was sent to the server
  *  Return: void
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
- void handle_response(int fd, int cmd){
-
+ void handle_response(int cmd){
+	
+	data_con = get_socket();			//open the socket
+	bind_socket(data_con, DATA_PORT);	//bind the socket
+	start_listening(data_con);			//listen on the socket
+	accept_connection(data_con);		//accept connection from server
+	
  	//list directory contents
  	if(cmd == LIST)	getListResponse(fd);
  	
  	//get a file
  	else if(cmd == GET) getFileResponse(fd);
  	
+ 	close(data_con);
  }
  
  
