@@ -145,20 +145,22 @@ void make_connection(int socket, char *host, char *port){
 *  Desc: Sends a message over a socket
 *  Param: int fd - the socket on which to send the message
 *  Param: char *msg - the socket on which to send the message
+*  Param: int msg_size - the number of bytes in the message
 *  Return: int - the file descriptor for the new socket
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void send_msg(int fd, char *msg){
-	//int len, total, num_written;
-	//len = strlen(msg);
-	//total = 0;
+void send_msg(int fd, char *msg, int msg_size){
 
-	//while (total < len){
+	//first send the size of the message
+	if(write(fd, msg_size, sizeof(int)) == -1){
+		close(fd);
+		print_error(strerror(errno));
+	}
+	
+	//now send the message itself
 	if (write(fd, msg, strlen(msg)) == -1){
 		close(fd);
 		print_error(strerror(errno));
 	}
-	//}
-
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -168,9 +170,31 @@ void send_msg(int fd, char *msg){
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void get_msg(int fd, char *msg){
 	int num_read;
+	int msg_size;
 	int i;
 
+	//first get the size of the message
+	if((num_read = recv(fd, &msg_size, sizeof(int), 0)) == -1) print_error(strerror(errno));
+	
 	//read the message
+	i = 0;
+	while(i < msg_size){
+		//error reading from socket
+		if ((num_read = recv(fd, &msg[i], 1, 0)) == -1) print_error(strerror(errno));
+		
+		//socket was closed
+		if (num_read == 0){
+			printf("Control connection was closed unexpectedly. Exiting program\n");
+			close(fd);
+			exit(EXIT_FAILURE);
+		}
+		i+=num_read;
+	}
+	msg[msg_size] = '\0';
+	
+	
+	//below is my first pass at reading a message
+	/*
 	i = 0;
 	do{
 		//error reading from socket
@@ -186,6 +210,7 @@ void get_msg(int fd, char *msg){
 		i += num_read;
 	} while (i < BUF_SIZE);
 	msg[i] = '\0';
+	*/
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
