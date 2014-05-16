@@ -22,6 +22,6 @@
 void print_usage(void);
 void get_user_input(char input[], int *msg_size);
 void sig_handler(int sig);
-void handle_response(int fd, int cmd);
+void handle_response(int cmd);
 void getListResponse(int fd);
 void getFileResponse(int fd);

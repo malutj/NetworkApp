@@ -13,7 +13,6 @@ typedef struct thread_data{
 
 static int passive_con;
 static pthread_t threads[BACKLOG];
-int data_con;
 
 int main(int argc, char **argv){
     //variables
@@ -34,7 +33,10 @@ int main(int argc, char **argv){
     passive_con = get_socket();
 
     //bind to port
-    bind_socket(passive_con, port);
+	if(bind_socket(passive_con, port) == -1){
+		printf("Sorry, port number %s is already in use. Please enter a new port number\n", port);
+		exit(EXIT_FAILURE);
+	}
 
     //listen for connections
     start_listening(passive_con);
@@ -86,12 +88,6 @@ void sig_handler(int sig){
 	int i;
 	printf("\nReceived SIG_INT Signal...Exiting program\n");
 	close(passive_con);
-	close(data_con);
-	for(i=0; i<BACKLOG; i++){
-		if(threads[i]){
-			close(threads[i]);
-		}
-	}
 	exit(0);
 }
 
@@ -105,7 +101,7 @@ void *session_handler(void *ptr){
 	int control_con;
 	char *prompt;
 	int cmd;
-	char msg[BUF_SIZE];
+	char *msg;
 	char opts[MAX_OPT][BUF_SIZE];
 	
 	td = *(thread_data *)ptr;
@@ -119,19 +115,21 @@ void *session_handler(void *ptr){
 
 	send_msg(control_con, prompt, strlen(prompt));
 	while(1){
+
 		//receive the request
-		get_msg(control_con, msg);
+		printf("Getting message from client\n");
+		msg = get_msg(control_con);
 		if ((cmd = parse_msg(msg, opts)) == EXIT) break;
 
 		//handle the request
+		printf("Handling the request\n");
 		handle_request(control_con, cmd, msg);
-
-		//send the response
 		
+		free(msg);
 	}
 
 	//set thread number to zero and kill thread
-	printf("Client closed the connection...terminating session.\n");
+	printf("Client done...terminating session.\n");
 	close(control_con);
 	threads[td.thread_number] = 0;
 	pthread_exit(NULL);
@@ -147,9 +145,9 @@ void *session_handler(void *ptr){
 * * * * * * * * * * * * * * * * * * * * * * * */
 void handle_request(int control_con, int cmd, char *msg){
 	if(cmd == LIST) handleListRequest(control_con);
-	else if(cmd == GET) handleGetRequest(msg);
-	else if(cmd == CD) handleChangeRequest(msg);
-	else if(cmd == HELP) handleHelpRequest(msg);
+	else if(cmd == GET) handleGetRequest(control_con);
+	else if(cmd == CD) handleChangeRequest(control_con);
+	else if(cmd == HELP) handleHelpRequest(control_con);
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * *
@@ -162,11 +160,13 @@ void handleListRequest(int control_con){
 	struct dirent *entry;
 	int count, len, i;
 	int num_written;
+	int data_con;
 	char **temp_list;
 	char *result;
 	char hostname[BUF_SIZE];
-	struct sockaddr *addr;
-	int addr_size;
+	struct sockaddr_in addr;
+	char *port;
+	socklen_t addr_size;
 	
 	//open the current directory
 	if((dir = opendir(".")) == NULL) print_error(strerror(errno));
@@ -188,15 +188,18 @@ void handleListRequest(int control_con){
 	send_msg(control_con, "ok", 2);
 	
 	//get client's host name
-	addr_size = sizeof(struct sockaddr);
-	if(getpeername(control_con, addr, &addr_size) == -1) print_error(strerror(errno));
-	if(getnameinfo(addr, &add_size, hostname, BUF_SIZE, NULL, 0, NI_NAMEREQD | NI_NUMERICHOST) == -1) print_error(strerror(errno));
+	addr_size = sizeof(addr);
+	if(getpeername(control_con, (struct sockaddr *)&addr, &addr_size) == -1) print_error(strerror(errno));
+	if(getnameinfo((struct sockaddr *)&addr, addr_size, hostname, BUF_SIZE, NULL, 0, 0) == -1) print_error(strerror(errno));
 	
+	//get the port number the client is listening on
+	port = get_msg(control_con);
+
 	//connect to the data socket
-	data_con = connect_data(host, DATA_PORT);
+	data_con = connect_data(hostname, port);
 	
 	//create the return string
-	result = malloc(sizeof(char) * len);
+	result = malloc(sizeof(char) * (len));
 	num_written = 0;
 	for(i = 0; i<count; i++){
 		//copy the filename into the result string
@@ -208,21 +211,49 @@ void handleListRequest(int control_con){
 		//free the old filename pointer
 		free(temp_list[i]);
 	}
+	result[num_written-1] = '\0';
+	num_written--;
 	
 	//free the old list
 	free(temp_list);
-	
+
 	//send the result string on the data connection
 	send_msg(data_con, result, num_written);
-	
+
 	//close the data connection
 	close(data_con);
 	
 	//free the message memory
 	free(result);
-	
 }
 
+
+/* * * * * * * * * * * * * * * * * * * * * * * *
+* Desc: Handles the GET request
+* Param: int control_con - the control connection
+* Return: void
+* * * * * * * * * * * * * * * * * * * * * * * */
+void handleGetRequest(int control_con){
+
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * *
+* Desc: Handles the CD request
+* Param: int control_con - the control connection
+* Return: void
+* * * * * * * * * * * * * * * * * * * * * * * */
+void handleChangeRequest(int control_con){
+
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * *
+* Desc: Handles the HELP request
+* Param: int control_con - the control connection
+* Return: void
+* * * * * * * * * * * * * * * * * * * * * * * */
+void handleHelpRequest(int control_con){
+
+}
 
 /* * * * * * * * * * * * * * * * * * * * * * * *
 * Desc: Connects to the client's data socket
@@ -233,7 +264,11 @@ void handleListRequest(int control_con){
 int connect_data(char *host, char *port){
 	int fd;
 
+	printf("Creating the socket for the data connection\n");
 	fd = get_socket();					//get a new socket
+	printf("Making the connection\n");
 	make_connection(fd, host, port);	//make the connection
+	printf("Connected\n");
+
 	return fd;	//return the socket
 }

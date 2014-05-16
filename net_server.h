@@ -25,5 +25,8 @@ void *session_handler(void *);
 void sig_handler(int sig);
 void handle_request(int control_con, int cmd, char msg[]);
 void handleListRequest(int control_con);
+void handleGetRequest(int control_con);
+void handleChangeRequest(int control_con);
+void handleHelpRequest(int control_con);
 int connect_data(char *host, char *port);
 

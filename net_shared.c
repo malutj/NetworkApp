@@ -24,7 +24,7 @@ void print_error(char *msg){
  *  Desc: Create a new socket
  *  Return: int - the file descriptor for the new socket
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-int get_socket(void){
+int get_socket(){
     int fd;
     if((fd = socket(PF_INET, SOCK_STREAM, 0)) == -1){
         print_error(strerror(errno));
@@ -36,9 +36,9 @@ int get_socket(void){
 * Desc: Binds the socket to a local port
 * Param: int socket - the socket to use
 * Param: char *port - the port to bind to
-* Return: void
+* Return: int - returns -1 if the port is in use
 * * * * * * * * * * * * * * * * * * * * * * * */
-void bind_socket(int socket, char *port){
+int bind_socket(int socket, char *port){
 	struct addrinfo hints, *result;
 	int status;
 
@@ -57,13 +57,17 @@ void bind_socket(int socket, char *port){
 
 	//bind the socket
 	if ((bind(socket, result->ai_addr, result->ai_addrlen)) == -1){
-		close(socket);
 		freeaddrinfo(result);
+		if (errno == EADDRINUSE){
+			return -1;
+		}
+		close(socket);
 		print_error(strerror(errno));
 	}
 
 	//free the linked list
 	freeaddrinfo(result);
+	return 1;
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -151,12 +155,14 @@ void make_connection(int socket, char *host, char *port){
 void send_msg(int fd, char *msg, int msg_size){
 
 	//first send the size of the message
-	if(write(fd, msg_size, sizeof(int)) == -1){
+	printf("sending message size\n");
+	if(write(fd, &msg_size, sizeof(int)) == -1){
 		close(fd);
 		print_error(strerror(errno));
 	}
 	
 	//now send the message itself
+	printf("sending acutal message\n");
 	if (write(fd, msg, strlen(msg)) == -1){
 		close(fd);
 		print_error(strerror(errno));
@@ -165,26 +171,32 @@ void send_msg(int fd, char *msg, int msg_size){
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *  Desc: Reads message from the control connection
-*  Param: char *msg - the string we'll store the message in
-*  Return: int - the socket to read from
+*  Param: int - the socket to read from
+*  Return: char * - a pointer to the message
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void get_msg(int fd, char *msg){
+char * get_msg(int fd){
 	int num_read;
 	int msg_size;
 	int i;
+	char *msg;
 
 	//first get the size of the message
-	if((num_read = recv(fd, &msg_size, sizeof(int), 0)) == -1) print_error(strerror(errno));
+	i = 0;
+	while (i < sizeof(int)){
+		if ((num_read = recv(fd, (&msg_size)+i, sizeof(int)-i, 0)) == -1) print_error(strerror(errno));
+		i += num_read;
+	}
 	
 	//read the message
 	i = 0;
+	msg = malloc(sizeof(char)* (msg_size + 1));
 	while(i < msg_size){
 		//error reading from socket
 		if ((num_read = recv(fd, &msg[i], 1, 0)) == -1) print_error(strerror(errno));
 		
 		//socket was closed
 		if (num_read == 0){
-			printf("Control connection was closed unexpectedly. Exiting program\n");
+			printf("Connection was closed unexpectedly. Exiting program\n");
 			close(fd);
 			exit(EXIT_FAILURE);
 		}
@@ -192,6 +204,7 @@ void get_msg(int fd, char *msg){
 	}
 	msg[msg_size] = '\0';
 	
+	return msg;
 	
 	//below is my first pass at reading a message
 	/*
@@ -226,7 +239,7 @@ int parse_msg(char msg[], char opts[][BUF_SIZE]){
 
 	//copy the command into the cmd_string variable
 	for (i = 0; i < BUF_SIZE; i++){
-		if (msg[i] == ' ' || msg[i] == '\n' || msg[i] == MSG_END) break;
+		if (msg[i] == ' ' || msg[i] == '\n' || msg[i] == '\0') break;
 	}
 	memcpy(cmd_string, msg, i);
 	cmd_string[i] = '\0';

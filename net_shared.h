@@ -23,6 +23,7 @@
 #define LIST 1
 #define GET 2
 #define CD 3
+#define HELP 4
 
 #define BUF_SIZE 1000
 #define MAX_OPT 10
@@ -33,11 +34,11 @@
 
 //shared function declarations
 void print_error(char *msg);
-int get_socket(void);
-void bind_socket(int socket, char *port);
+int get_socket();
+int bind_socket(int socket, char *port);
 void start_listening(int fd);
 int accept_connection(int socket);
 void make_connection(int socket, char *host, char *port);
 void send_msg(int fd, char *msg, int msg_size);
-void get_msg(int fd, char *msg);
+char * get_msg(int fd);
 int parse_msg(char msg[], char opts[][BUF_SIZE]);
