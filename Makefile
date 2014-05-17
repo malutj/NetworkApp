@@ -1,4 +1,4 @@
-CFLAGS = -Wall -Wno-unused-variable -fpic -Wno-unused-but-set-variable -lm
+CFLAGS = -Wall -Wno-unused-variable -fpic -lm
 PROGS = net_client net_server
 
 default: all

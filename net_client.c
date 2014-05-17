@@ -186,7 +186,7 @@ void handle_response(int cmd){
  	int outfile;
  	char *filename;
  	char *file_contents;
- 	char overwrite_resp[3];
+ 	char overwrite_resp[5];
  	int overwrite;
  	
  	//get size of filename
@@ -225,13 +225,13 @@ void handle_response(int cmd){
  	}
  	
  	//open the file
- 	if((outfile = open(filename, O_WRONLY | O_CREAT | O_EXCL)) == -1){
+ 	if((outfile = open(filename, O_WRONLY | O_CREAT | O_EXCL, 0777)) == -1){
  		//file already exists
  		if(errno == EEXIST){
  			//ask user if they want to overwrite file
  			printf("The filename '%s' already exists in the current directory. Do you want to overwrite? 'yes' or 'no': ", filename);
  			do{
-	 			fgets(overwrite_resp, 3, stdin);
+	 			fgets(overwrite_resp, 5, stdin);
 	 			//yes, overwrite
 	 			if(strncmp(overwrite_resp, "yes", 3) == 0){
 	 				overwrite = 1;

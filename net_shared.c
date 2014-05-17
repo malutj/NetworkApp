@@ -254,7 +254,24 @@ int parse_msg(char msg[], char opts[][BUF_SIZE]){
 	else if (strcmp(cmd_string, "list") == 0){ cmd = LIST; }
 
 	//GET
-	else if (strcmp(cmd_string, "get") == 0){ cmd = GET; }
+	else if (strcmp(cmd_string, "get") == 0){
+        cmd = GET;
+        
+        //find the end of the argument string
+		for (i = opt_start; i < BUF_SIZE; i++){
+			if (msg[i] == '\n' || msg[i] == ' ' || msg[i] == '\0') break;
+		}
+        msg[i] = '\0';
+        
+		//make sure the argument string isn't blank
+		if (i - opt_start == 0){
+			printf("The 'get' command requires a <filename> argument\n");
+			return INPUT_ERROR;
+		}
+        printf("Found the filename: %s\n", &msg[opt_start]);
+        strcpy(opts[0], &msg[opt_start]);
+        
+    }
 
 	//NOT RECOGNIZED
 	else{
@@ -265,22 +282,6 @@ int parse_msg(char msg[], char opts[][BUF_SIZE]){
 
 	//populate the option array
 	opt_num = 0;
-
-	//make sure an argument was provided if required//
-	//----------------------------------------------//
-	/*if (cmd == GET){
-
-		//find the end of the argument string
-		for (i = arg_start; i < BUF_SIZE; i++){
-			if (input[i] == '\n' || input[i] == ' ') break;
-		}
-
-		//make sure the argument string isn't blank
-		if (i - arg_start == 0){
-			printf("The 'get' command requires a <filename> argument\n");
-			return INPUT_ERROR;
-		}
-	}*/
 
 
 	return cmd;
