@@ -303,7 +303,7 @@ void handleGetRequest(int control_con, char *msg){
 * Return: void
 * * * * * * * * * * * * * * * * * * * * * * * */
 void handleChangeRequest(int control_con){
-
+    
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * *
@@ -312,7 +312,13 @@ void handleChangeRequest(int control_con){
 * Return: void
 * * * * * * * * * * * * * * * * * * * * * * * */
 void handleHelpRequest(int control_con){
-
+    char *prompt = "Command Options:\n"
+    "\tlist - list contents in current directory\n"
+    "\tget <filename or path> - return a specified file\n"
+    "\tcd - change the current directory\n"
+    "\thelp - print command list\n";
+    
+    send_msg(control_con, prompt, strlen(prompt));
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * *

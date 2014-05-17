@@ -54,6 +54,12 @@ int main(int argc, char **argv){
 		
 		//get success/error msg from server
 		msg = get_msg(control_con);
+        
+        //if the command was help, just get the prompt, print, and continue
+        if(cmd == HELP){
+            printf("%s\n", msg);
+            continue;
+        }
 			
 		//print error message from server
 		if(strcmp(msg, "ok") != 0){
@@ -229,7 +235,7 @@ void handle_response(int cmd){
  		//file already exists
  		if(errno == EEXIST){
  			//ask user if they want to overwrite file
- 			printf("The filename '%s' already exists in the current directory. Do you want to overwrite? 'yes' or 'no': ", filename);
+ 			printf("The filename '%s' already exists. Ok to overwrite? 'yes' or 'no': ", filename);
  			do{
 	 			fgets(overwrite_resp, 5, stdin);
 	 			//yes, overwrite

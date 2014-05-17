@@ -155,14 +155,12 @@ void make_connection(int socket, char *host, char *port){
 void send_msg(int fd, char *msg, int msg_size){
 
 	//first send the size of the message
-	printf("sending message size\n");
 	if(write(fd, &msg_size, sizeof(int)) == -1){
 		close(fd);
 		print_error(strerror(errno));
 	}
 	
 	//now send the message itself
-	printf("sending acutal message\n");
 	if (write(fd, msg, strlen(msg)) == -1){
 		close(fd);
 		print_error(strerror(errno));
@@ -205,25 +203,6 @@ char * get_msg(int fd){
 	msg[msg_size] = '\0';
 	
 	return msg;
-	
-	//below is my first pass at reading a message
-	/*
-	i = 0;
-	do{
-		//error reading from socket
-		if ((num_read = recv(fd, &msg[i], 1, 0)) == -1) print_error(strerror(errno));
-
-		//socket was closed
-		if (num_read == 0){
-			printf("Control connection was closed unexpectedly. Exiting program\n");
-			close(fd);
-			exit(EXIT_FAILURE);
-		}
-		if (msg[i] == MSG_END) break;
-		i += num_read;
-	} while (i < BUF_SIZE);
-	msg[i] = '\0';
-	*/
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -268,10 +247,10 @@ int parse_msg(char msg[], char opts[][BUF_SIZE]){
 			printf("The 'get' command requires a <filename> argument\n");
 			return INPUT_ERROR;
 		}
-        printf("Found the filename: %s\n", &msg[opt_start]);
         strcpy(opts[0], &msg[opt_start]);
         
     }
+    else if(strcmp(cmd_string, "help") == 0) {cmd = HELP; }
 
 	//NOT RECOGNIZED
 	else{
