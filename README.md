@@ -1,7 +1,9 @@
 # NetworkApp
 
 This program is a 2-connection client-server network application that connects via a control connection and sends responses over a data connection.
+
 The server is multi-threaded, so it can accept numerous client connections at one time.
+
 Both the client and the server catch `SIGINT` signals and shut down any open sockets, so feel free to kill the programs at any time.
 
 
