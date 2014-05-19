@@ -31,8 +31,8 @@ To start the client, type
 `./net_client <host> <port>`
  
 ##### Commands
-*list - returns a listing of all files in the server's working directory 
-*get <filename> - copies a file from the server's directory into the client's directory   
+* list - returns a listing of all files in the server's working directory 
+* get <filename> - copies a file from the server's directory into the client's directory   
    If the file already exists in the client's directory, the program will ask if you want to overwrite the file 
-*help - prints out a list of the commands 
-*exit - closes the connection with the server (does not shut down the server) 
+* help - prints out a list of the commands 
+* exit - closes the connection with the server (does not shut down the server) 
