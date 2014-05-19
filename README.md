@@ -8,7 +8,7 @@ The server is multi-threaded, so it can accept numerous client connections at on
 Usage
 ==========
 
- ###Makefile
+ ### Makefile
  To compile and link both the client and server, simply type  
    
  `make all` 
@@ -17,7 +17,7 @@ Usage
    
  `make clean`
    
- ###Server
+ ### Server
  To start the server, type  
  
  `./net_serve <port>`
@@ -26,12 +26,12 @@ Usage
  
  `ctrl+c` and the code will catch the SIGINT and close out the open sockets
  
- ###Client
+ ### Client
  To start the client, type  
  
  `./net_client <host> <port>`
  
- #####Commands
+ ##### Commands
  *list - returns a listing of all files in the server's working directory
  *get <filename> - copies a file from the server's directory into the client's directory  
    If the file already exists in the client's directory, the program will ask if you want to overwrite the file
